@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrdinalX Wallet Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="login-container">
+        <h1>Login</h1>
+        <input type="text" id="username" placeholder="Enter your username">
+        <input type="password" id="password" placeholder="Enter your password">
+        <button id="login-button">Login</button>
+    </div>
+
+    <div id="wallet-container" style="display: none;">
+        <h1>My Wallet</h1>
+        <p>Welcome, <span id="wallet-username"></span>!</p>
+
+        <div id="wallet-info">
+            <h2>Wallet Information</h2>
+            <div>
+                <strong>BSV Address:</strong> <span id="bsv-address">Loading...</span>
+            </div>
+            <div>
+                <strong>Balance:</strong> <span id="bsv-balance">Loading...</span> satoshis
+            </div>
+        </div>
+
+        <div id="nft-list">
+            <h2>My NFTs</h2>
+            <div id="nft-grid"></div>
+        </div>
+
+        <hr>
+
+        <div id="actions-container">
+            <div id="send-bsv-container">
+                <h2>Send BSV</h2>
+                <input type="text" id="send-bsv-recipient" placeholder="Recipient Paymail">
+                <input type="number" id="send-bsv-amount" placeholder="Amount (satoshis)">
+                <button id="send-bsv-button">Send BSV</button>
+            </div>
+
+            <hr>
+
+            <div id="create-nft-container">
+                <h2>Create NFT</h2>
+                <input type="text" id="create-nft-name" placeholder="NFT Name">
+                <input type="file" id="create-nft-file">
+                <button id="create-nft-button">Create NFT</button>
+            </div>
+        </div>
+        <!-- Wallet content will go here -->
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
