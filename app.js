@@ -173,13 +173,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            await apiFetch('/api/v1/auth/login', {
+            // データをJSONではなく、フォーム形式に変換
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            // apiFetchを直接使わず、ここでfetchを直接呼び出す
+            const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
                 method: 'POST',
-                body: JSON.stringify({ username, password })
+                headers: {
+                    // Content-Typeを 'application/json' から変更
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData,
+                // credentialsは引き続き必要
+                credentials: 'include',
             });
 
-            // If login is successful, the server sets a session cookie.
-            // We can now show the wallet and make authenticated requests.
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
+                throw new Error(errorData.detail || errorData.error || `HTTP error! ${response.status}`);
+            }
+
+            // ログイン成功時の処理
             walletUsername.textContent = username;
             loginContainer.style.display = 'none';
             walletContainer.style.display = 'block';
