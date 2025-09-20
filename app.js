@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- MOCK DATA MODE --- 
-    const MOCK_MODE = true; // Set to true to use mock data and bypass API calls
+    const MOCK_MODE = false; // Set to true to use mock data and bypass API calls
 
     // DOM Elements
     const loginContainer = document.getElementById('login-container');
