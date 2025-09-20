@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const data = await apiFetch('/api/v1/auth/jwt-token', {
+            const data = await apiFetch('/api/v1/auth/login', {
                 method: 'POST',
                 body: JSON.stringify({ username, password })
             });
