@@ -122,6 +122,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 apiFetch('/api/v1/user/nfts/info')
             ]);
 
+            // Re-adding logs for debugging the NFT structure
+            console.log('Balance data:', balanceData);
+            console.log('Address data:', addressData);
+            console.log('NFTs data:', nftsData);
+
             // Use the correct property for balance from the API response
             if (balanceData && typeof balanceData.total_balance !== 'undefined') {
                 bsvBalanceEl.textContent = balanceData.total_balance.toLocaleString();
