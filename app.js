@@ -159,16 +159,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const formData = new URLSearchParams();
-            formData.append('username', username);
-            formData.append('password', password);
-
-            const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+            // Use the dedicated JWT endpoint with JSON payload
+            const response = await fetch(`${API_BASE_URL}/api/v1/auth/jwt-token`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                 },
-                body: formData,
+                body: JSON.stringify({ username, password }),
             });
 
             if (!response.ok) {
@@ -176,14 +173,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorData.detail || errorData.error || `HTTP error! ${response.status}`);
             }
 
-            const loginData = await response.json();
-            console.log('Login response data:', loginData); // Log the response for debugging
-
-            // Try to find the token under common names like 'access' or 'token'
-            const token = loginData.access || loginData.token;
+            const tokenData = await response.json();
+            const token = tokenData.token || tokenData.access;
 
             if (!token) {
-                throw new Error('Login successful, but no token was provided. Please check the developer console for the structure of the login response.');
+                console.log('JWT response data:', tokenData); // For debugging if needed
+                throw new Error('Login successful, but no token was provided. Check the developer console.');
             }
 
             sessionStorage.setItem('jwtToken', token);
@@ -255,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Initial Check ---
+    // --- Initial Check for existing session ---
     const checkLoginStatus = async () => {
         const token = sessionStorage.getItem('jwtToken');
         if (token) {
