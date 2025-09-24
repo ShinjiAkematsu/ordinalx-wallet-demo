@@ -22,7 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- API Call Functions ---
     const apiFetch = async (endpoint, options = {}) => {
         const url = `${API_BASE_URL}${endpoint}`;
-        const headers = { ...options.headers };
+        const headers = {
+            'Accept': 'application/json', // Default to accepting JSON
+            ...options.headers
+        };
         const token = sessionStorage.getItem('jwtToken');
 
         if (token) {
@@ -39,6 +42,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await fetch(url, fetchOptions);
 
         if (!response.ok) {
+            // Try to get more specific error message from JSON response
+            const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+            const errorMessage = errorData.detail || errorData.error || `HTTP error! status: ${response.status}`;
+
             if (response.status === 401) {
                 alert('Session expired. Please log in again.');
                 sessionStorage.removeItem('jwtToken');
@@ -46,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 loginContainer.style.display = 'block';
                 walletContainer.style.display = 'none';
             }
-            const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
-            throw new Error(errorData.detail || errorData.error || `HTTP error! status: ${response.status}`);
+            
+            throw new Error(errorMessage);
         }
 
         const contentType = response.headers.get("content-type");
