@@ -122,24 +122,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 apiFetch('/api/v1/user/nfts/info')
             ]);
 
-            // Log responses for debugging
-            console.log('Balance data:', balanceData);
-            console.log('Address data:', addressData);
-            console.log('NFTs data:', nftsData);
-
-            // Safely access balance
-            if (balanceData && typeof balanceData.balance !== 'undefined') {
-                bsvBalanceEl.textContent = balanceData.balance.toLocaleString();
+            // Use the correct property for balance from the API response
+            if (balanceData && typeof balanceData.total_balance !== 'undefined') {
+                bsvBalanceEl.textContent = balanceData.total_balance.toLocaleString();
             } else {
-                console.error('Balance property not found in balanceData response.');
+                console.error('total_balance property not found in balanceData response.');
                 bsvBalanceEl.textContent = 'N/A';
             }
 
-            // Safely access address
-            if (addressData && Array.isArray(addressData.Address) && addressData.Address.length > 0) {
-                bsvAddressEl.textContent = addressData.Address[0];
+            // Use the correct property for address from the API response
+            if (addressData && typeof addressData.Address === 'string') {
+                bsvAddressEl.textContent = addressData.Address;
             } else {
-                console.error('Address property not found in addressData response.');
+                console.error('Address property not found or not a string in addressData response.');
                 bsvAddressEl.textContent = 'N/A';
             }
 
