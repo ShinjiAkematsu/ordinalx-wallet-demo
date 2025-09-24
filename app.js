@@ -1,5 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Helper Functions ---
+    // ==== JWT 管理 ====
+    let accessToken = null;
+    let refreshToken = null;
+
+    // ページロード時にlocalStorageからトークンを読み込む
+    const storedTokens = localStorage.getItem('jwt');
+    if (storedTokens) {
+        const parsedTokens = JSON.parse(storedTokens);
+        accessToken = parsedTokens.access;
+        refreshToken = parsedTokens.refresh;
+    }
+
+    const setTokens = (data) => {
+        // simplejwt のデフォは { access, refresh }
+        accessToken = data.access || accessToken;
+        refreshToken = data.refresh || refreshToken;
+        localStorage.setItem('jwt', JSON.stringify({ access: accessToken, refresh: refreshToken }));
+    };
+
+    // --- Helper (必要なら残すが、基本 JWT 化で未使用になる想定) ---
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -35,230 +54,62 @@ document.addEventListener('DOMContentLoaded', () => {
     // API Configuration
     const API_BASE_URL = 'https://akematsu.yenpoint.jp';
 
-    // --- API Call Functions ---
-    const apiFetch = async (endpoint, options = {}) => {
+    // ==== 共通フェッチ（JWT自動付与 & 自動リフレッシュ）====
+    const rawFetch = async (endpoint, options = {}) => {
         const url = `${API_BASE_URL}${endpoint}`;
-        const headers = { ...options.headers };
+        const headers = { ...(options.headers || {}) };
 
-        // Add CSRF token for methods that require it
-        if (options.method && !['GET', 'HEAD', 'OPTIONS'].includes(options.method.toUpperCase())) {
-            const csrftoken = getCookie('csrftoken');
-            if (csrftoken) {
-                headers['X-CSRFToken'] = csrftoken;
-            }
+        // JWTをつける（手動で指定されていなければ）
+        if (accessToken && !headers['Authorization']) {
+            headers['Authorization'] = `Bearer ${accessToken}`;
         }
 
-        // Set Content-Type for JSON, otherwise let browser handle it for FormData
-        if (options.body && typeof options.body === 'string') {
-             headers['Content-Type'] = 'application/json';
+        // JSON文字列なら Content-Type を自動付与（FormDataは付けない）
+        if (options.body && typeof options.body === 'string' && !headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
         }
 
-        // The browser will automatically send cookies (like sessionid) with requests.
-        // We must set credentials to 'include' for this to happen on cross-origin requests.
-        const fetchOptions = { ...options, headers, credentials: 'include' };
-
-        const response = await fetch(url, fetchOptions);
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
-            throw new Error(errorData.detail || errorData.error || `HTTP error! status: ${response.status}`);
-        }
-
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-            return response.json();
-        }
-        return response.blob();
+        // CORSでCookieを使う可能性も残しておく（将来用）
+        const resp = await fetch(url, {
+            ...options,
+            headers,
+            credentials: 'include',
+        });
+        return resp;
     };
 
-    // --- UI Refresh Functions ---
-    const refreshBalance = async () => {
-        try {
-            const balanceData = await apiFetch('/api/v1/user/wallet/balance');
-            bsvBalanceEl.textContent = balanceData.balance.toLocaleString();
-        } catch (error) {
-            console.error('Failed to refresh balance:', error);
-        }
-    };
+    // 401時に1回だけリフレッシュしてリトライ
+    const apiFetch = async (endpoint, options = {}) => {
+        let resp = await rawFetch(endpoint, options);
 
-    const refreshNFTs = async () => {
-        try {
-            const nftsData = await apiFetch('/api/v1/user/nfts/info');
-            await displayNFTs(nftsData);
-        } catch (error) {
-            console.error('Failed to refresh NFTs:', error);
-        }
-    };
-
-    // --- UI Update Functions ---
-    const displayNFTs = async (nfts) => {
-        nftGrid.innerHTML = '';
-        if (!nfts || nfts.length === 0) {
-            nftGrid.innerHTML = '<p>No NFTs found.</p>';
-            return;
-        }
-
-        for (const nft of nfts) {
-            const nftItem = document.createElement('div');
-            nftItem.className = 'nft-item';
-
-            const nftImage = document.createElement('img');
-            nftImage.alt = nft.name;
-            nftImage.src = '#'; // Placeholder until image loads
-
-            const nftName = document.createElement('p');
-            nftName.textContent = nft.name;
-
-            const sendNftButton = document.createElement('button');
-            sendNftButton.textContent = 'Send';
-            sendNftButton.onclick = () => handleSendNft(nft.nft_origin);
-
-            nftItem.appendChild(nftImage);
-            nftItem.appendChild(nftName);
-            nftItem.appendChild(sendNftButton);
-            nftGrid.appendChild(nftItem);
-
-            try {
-                const imageBlob = await apiFetch(`/api/v1/nft/data/${nft.nft_origin}`);
-                nftImage.src = URL.createObjectURL(imageBlob);
-            } catch (error) {
-                console.error(`Failed to load image for ${nft.name}:`, error);
-                nftImage.alt = 'Image not found';
-            }
-        }
-    };
-
-    const loadWalletData = async () => {
-        try {
-            const [balanceData, addressData, nftsData] = await Promise.all([
-                apiFetch('/api/v1/user/wallet/balance'),
-                apiFetch('/api/v1/bsv/legacy-address'),
-                apiFetch('/api/v1/user/nfts/info')
-            ]);
-
-            bsvBalanceEl.textContent = balanceData.balance.toLocaleString();
-            bsvAddressEl.textContent = addressData.Address[0];
-            await displayNFTs(nftsData);
-        } catch (error) {
-            console.error('Failed to load wallet data:', error);
-            alert(`Error loading wallet data: ${error.message}`);
-        }
-    };
-
-    // --- Action Handlers ---
-    const handleSendNft = async (nftOrigin) => {
-        const recipientPaymail = prompt('Enter recipient paymail:');
-        if (!recipientPaymail) return;
-
-        try {
-            await apiFetch('/api/v1/nft/paymail/send', {
+        if (resp.status === 401 && refreshToken) {
+            // アクセス期限切れ → リフレッシュ試行
+            const refreshResp = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
                 method: 'POST',
-                body: JSON.stringify({ recipient_paymail: recipientPaymail, nft_origin: nftOrigin })
-            });
-            alert('NFT sent successfully!');
-            await refreshNFTs();
-        } catch (error) {
-            console.error('Failed to send NFT:', error);
-            alert(`Error sending NFT: ${error.message}`);
-        }
-    };
-
-    // --- Event Listeners ---
-    loginButton.addEventListener('click', async () => {
-        const username = usernameInput.value.trim();
-        const password = passwordInput.value.trim();
-        if (!username || !password) {
-            alert('Please enter both username and password.');
-            return;
-        }
-
-        try {
-            // データをJSONではなく、フォーム形式に変換
-            const formData = new URLSearchParams();
-            formData.append('username', username);
-            formData.append('password', password);
-
-            // apiFetchを直接使わず、ここでfetchを直接呼び出す
-            const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
-                method: 'POST',
-                headers: {
-                    // Content-Typeを 'application/json' から変更
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: formData,
-                // credentialsは引き続き必要
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh: refreshToken }),
                 credentials: 'include',
             });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
-                throw new Error(errorData.detail || errorData.error || `HTTP error! ${response.status}`);
+            if (refreshResp.ok) {
+                const data = await refreshResp.json().catch(() => ({}));
+                if (data.access) {
+                    accessToken = data.access;
+                    // リトライ
+                    resp = await rawFetch(endpoint, options);
+                }
             }
-
-            // ログイン成功時の処理
-            walletUsername.textContent = username;
-            loginContainer.style.display = 'none';
-            walletContainer.style.display = 'block';
-            await loadWalletData();
-
-        } catch (error) {
-            console.error('Login failed:', error);
-            alert(`Login failed: ${error.message}`);
-        }
-    });
-
-    sendBsvButton.addEventListener('click', async () => {
-        const recipient = sendBsvRecipientInput.value.trim();
-        const amount = parseInt(sendBsvAmountInput.value, 10);
-
-        if (!recipient || !amount || amount <= 0) {
-            alert('Please enter a valid recipient and amount.');
-            return;
         }
 
-        if (!confirm(`Send ${amount} satoshis to ${recipient}?`)) return;
+        if (!resp.ok) {
+            // 可能ならJSONのエラーメッセージを拾う
+            const errorData = await resp.json().catch(() => ({}));
+            throw new Error(errorData.detail || errorData.error || `HTTP error! ${response.status}`);
+                }
 
-        try {
-            await apiFetch('/api/v1/bsv/paymail/send', {
-                method: 'POST',
-                body: JSON.stringify({ recipient_paymail: recipient, amount_satoshis: amount })
-            });
-            alert('BSV sent successfully!');
-            sendBsvRecipientInput.value = '';
-            sendBsvAmountInput.value = '';
-            await refreshBalance();
-        } catch (error) {
-            console.error('Failed to send BSV:', error);
-            alert(`Error sending BSV: ${error.message}`);
-        }
-    });
+                // ログイン成功時のレスポンスからトークンを取得し、保存する
+                const loginData = await response.json(); // レスポンスをJSONとしてパース
+                setTokens(loginData); // setTokens関数でトークンを保存
 
-    createNftButton.addEventListener('click', async () => {
-        const name = createNftNameInput.value.trim();
-        const file = createNftFileInput.files[0];
-
-        if (!name || !file) {
-            alert('Please provide a name and a file for the NFT.');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('file', file);
-        formData.append('app', 'OrdinalX-Demo-App');
-
-        try {
-            await apiFetch('/api/v1/nft/create', {
-                method: 'POST',
-                body: formData
-            });
-            alert('NFT created successfully!');
-            createNftNameInput.value = '';
-            createNftFileInput.value = '';
-            await refreshNFTs();
-        } catch (error) {
-            console.error('Failed to create NFT:', error);
-            alert(`Error creating NFT: ${error.message}`);
-        }
-    });
-});
+                // ログイン成功時の処理
+                walletUsername.textContent = username;
