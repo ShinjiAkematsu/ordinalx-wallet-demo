@@ -101,15 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (!resp.ok) {
-            // 可能ならJSONのエラーメッセージを拾う
-            const errorData = await resp.json().catch(() => ({}));
-            throw new Error(errorData.detail || errorData.error || `HTTP error! ${response.status}`);
-                }
+        if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
+                throw new Error(errorData.detail || errorData.error || `HTTP error! ${response.status}`);
+            }
 
-                // ログイン成功時のレスポンスからトークンを取得し、保存する
-                const loginData = await response.json(); // レスポンスをJSONとしてパース
-                setTokens(loginData); // setTokens関数でトークンを保存
+            // ログイン成功時のレスポンスからトークンを取得し、保存する
+            const loginData = await response.json(); // レスポンスをJSONとしてパース
+            setTokens(loginData); // setTokens関数でトークンを保存
 
-                // ログイン成功時の処理
-                walletUsername.textContent = username;
+            // ログイン成功時の処理
+            walletUsername.textContent = username;
