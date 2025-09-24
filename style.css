@@ -1,102 +1,136 @@
+/* --- General --- */
+:root {
+    --primary-blue: #007bff;
+    --primary-blue-dark: #0056b3;
+    --light-blue-bg: #f0f8ff;
+    --text-dark: #212529;
+    --text-light: #6c757d;
+    --white: #ffffff;
+    --gray-border: #dee2e6;
+    --gray-light: #f8f9fa;
+    --shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
 body {
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
+    align-items: flex-start; /* Align to top */
+    min-height: 100vh;
     margin: 0;
-    background-color: #f0f2f5;
+    padding: 2rem 1rem;
+    background-color: var(--light-blue-bg);
+    color: var(--text-dark);
+    box-sizing: border-box;
 }
 
-#login-container, #wallet-container {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-input[type="text"] {
-    width: calc(100% - 22px);
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-button {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-#wallet-info {
-    margin-top: 2rem;
-    text-align: left;
-}
-
-#wallet-info div {
-    margin-bottom: 0.5rem;
-}
-
-#nft-list {
-    margin-top: 2rem;
-}
-
-#nft-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.nft-item {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 1rem;
-    text-align: center;
-}
-
-.nft-item img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px;
-    background-color: #eee;
-}
-
-.nft-item p {
-    margin-top: 0.5rem;
-    font-size: 14px;
-    word-break: break-all;
-}
-
-.nft-item button {
-    margin-top: 0.5rem;
-    padding: 5px 10px;
-    font-size: 12px;
+h1, h2 {
+    color: var(--primary-blue-dark);
 }
 
 hr {
     border: none;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--gray-border);
     margin: 2rem 0;
 }
 
+/* --- Containers --- */
+#login-container, #wallet-container {
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+    transition: all 0.3s ease-in-out;
+}
+
+#wallet-info, #nft-list, #actions-container {
+    margin-top: 2.5rem;
+    text-align: left;
+}
+
+/* --- Form Elements --- */
+input[type="text"], input[type="password"], input[type="number"], input[type="file"] {
+    width: calc(100% - 24px);
+    padding: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--gray-border);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+button {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary-blue);
+    color: var(--white);
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background-color: var(--primary-blue-dark);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+#logout-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: auto;
+    background-color: transparent;
+    color: var(--primary-blue);
+    font-weight: normal;
+    padding: 8px 12px;
+}
+#logout-button:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* --- Wallet Specifics --- */
+#wallet-container {
+    position: relative; /* For logout button positioning */
+}
+
+#wallet-username {
+    font-weight: bold;
+    color: var(--primary-blue-dark);
+}
+
+#wallet-info div {
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+}
+
+#wallet-info span {
+    font-family: monospace;
+    background-color: var(--gray-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    word-break: break-all;
+}
+
+/* --- Actions (Send/Create) --- */
 #actions-container {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    margin-top: 2rem;
-    text-align: left;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2.5rem;
 }
 
 #send-bsv-container, #create-nft-container {
@@ -104,6 +138,53 @@ hr {
     flex-direction: column;
 }
 
-#actions-container input {
-    margin-bottom: 0.5rem;
+/* --- NFT Grid --- */
+#nft-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.nft-item {
+    border: 1px solid var(--gray-border);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    background-color: var(--white);
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.nft-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.nft-item img {
+    max-width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+    background-color: var(--gray-light);
+    margin-bottom: 0.75rem;
+}
+
+.nft-item p {
+    margin: 0.5rem 0;
+    font-size: 14px;
+    font-weight: 500;
+    word-break: break-all;
+}
+
+.nft-item button {
+    margin-top: 0.5rem;
+    padding: 6px 12px;
+    font-size: 12px;
+    width: auto;
+    background-color: var(--text-light);
+}
+
+.nft-item button:hover {
+    background-color: var(--text-dark);
 }
