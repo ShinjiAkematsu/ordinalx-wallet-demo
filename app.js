@@ -177,11 +177,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const loginData = await response.json();
-            // Django-rest-framework-simplejwt usually returns 'access' and 'refresh' tokens.
-            const token = loginData.access;
+            console.log('Login response data:', loginData); // Log the response for debugging
+
+            // Try to find the token under common names like 'access' or 'token'
+            const token = loginData.access || loginData.token;
 
             if (!token) {
-                throw new Error('Login successful, but no token was provided.');
+                throw new Error('Login successful, but no token was provided. Please check the developer console for the structure of the login response.');
             }
 
             sessionStorage.setItem('jwtToken', token);
