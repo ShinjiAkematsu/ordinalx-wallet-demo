@@ -89,11 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
             nftItem.className = 'nft-item';
 
             const nftImage = document.createElement('img');
-            nftImage.alt = nft.name;
+            nftImage.alt = nft.original_file_name || 'NFT Image'; // Use original file name for alt text
             nftImage.src = '#'; // Placeholder until image loads
 
             const nftName = document.createElement('p');
-            nftName.textContent = nft.name;
+            nftName.textContent = nft.original_file_name || 'Unnamed NFT';
 
             const sendNftButton = document.createElement('button');
             sendNftButton.textContent = 'Send';
@@ -105,10 +105,17 @@ document.addEventListener('DOMContentLoaded', () => {
             nftGrid.appendChild(nftItem);
 
             try {
-                const imageBlob = await apiFetch(`/api/v1/nft/data/${nft.nft_origin}`);
-                nftImage.src = URL.createObjectURL(imageBlob);
+                // Fetch the image data as a base64 string in a JSON object, as per the API documentation.
+                const imageData = await apiFetch(`/api/v1/nft/data/${nft.nft_origin}?data_format=base64`);
+                
+                if (imageData && imageData.data) {
+                    // Construct the Data URL and set it as the image source.
+                    nftImage.src = `data:${nft.content_type};base64,${imageData.data}`;
+                } else {
+                    throw new Error('Base64 data field not found in API response.');
+                }
             } catch (error) {
-                console.error(`Failed to load image for ${nft.name}:`, error);
+                console.error(`Failed to load image for ${nft.original_file_name} using origin ${nft.nft_origin}:`, error);
                 nftImage.alt = 'Image not found';
             }
         }
