@@ -279,4 +279,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     checkLoginStatus();
+
+    // --- Logout Handler ---
+    const logoutButton = document.getElementById('logout-button');
+    logoutButton.addEventListener('click', () => {
+        sessionStorage.removeItem('jwtToken');
+        sessionStorage.removeItem('username');
+        location.reload();
+    });
 });
