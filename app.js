@@ -122,8 +122,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 apiFetch('/api/v1/user/nfts/info')
             ]);
 
-            bsvBalanceEl.textContent = balanceData.balance.toLocaleString();
-            bsvAddressEl.textContent = addressData.Address[0];
+            // Log responses for debugging
+            console.log('Balance data:', balanceData);
+            console.log('Address data:', addressData);
+            console.log('NFTs data:', nftsData);
+
+            // Safely access balance
+            if (balanceData && typeof balanceData.balance !== 'undefined') {
+                bsvBalanceEl.textContent = balanceData.balance.toLocaleString();
+            } else {
+                console.error('Balance property not found in balanceData response.');
+                bsvBalanceEl.textContent = 'N/A';
+            }
+
+            // Safely access address
+            if (addressData && Array.isArray(addressData.Address) && addressData.Address.length > 0) {
+                bsvAddressEl.textContent = addressData.Address[0];
+            } else {
+                console.error('Address property not found in addressData response.');
+                bsvAddressEl.textContent = 'N/A';
+            }
+
             await displayNFTs(nftsData);
         } catch (error) {
             console.error('Failed to load wallet data:', error);
