@@ -173,16 +173,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const loginData = { username, password };
+            // データをJSONではなく、フォーム形式に変換
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
 
-            // apiFetch関数を使って、新しいJWTトークン認証エンドポイントを呼び出します
-            const data = await apiFetch('/api/v1/auth/jwt-token', {
+            // apiFetchを直接使わず、ここでfetchを直接呼び出す
+            const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
                 method: 'POST',
-                body: JSON.stringify(loginData)
+                headers: {
+                    // Content-Typeを 'application/json' から変更
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData,
+                // credentialsは引き続き必要
+                credentials: 'include',
             });
 
-            // 本番アプリでは、ここで受け取ったトークンを安全に保存する必要があります
-            console.log('Login successful, received tokens:', data);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
+                throw new Error(errorData.detail || errorData.error || `HTTP error! ${response.status}`);
+            }
 
             // ログイン成功時の処理
             walletUsername.textContent = username;
