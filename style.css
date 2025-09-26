@@ -1,45 +1,50 @@
 /* --- General --- */
 :root {
+    --primary-cyan: #00ffff;
+    --primary-magenta: #ff00ff;
     --primary-blue: #007bff;
-    --primary-blue-dark: #0056b3;
-    --light-blue-bg: #f0f8ff;
-    --text-dark: #212529;
-    --text-light: #6c757d;
-    --white: #ffffff;
-    --gray-border: #dee2e6;
-    --gray-light: #f8f9fa;
-    --shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    --dark-bg: #0a0a1a;
+    --light-bg: #1a1a2a;
+    --text-light: #e0e0e0;
+    --text-dark: #a0a0a0;
+    --border-color: #00ffff44;
+    --shadow-color: #00ffff33;
+    --glow-color: #00ffff88;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
     display: flex;
     justify-content: center;
-    align-items: flex-start; /* Align to top */
+    align-items: flex-start;
     min-height: 100vh;
     margin: 0;
     padding: 2rem 1rem;
-    background-color: var(--light-blue-bg);
-    color: var(--text-dark);
+    background-color: var(--dark-bg);
+    color: var(--text-light);
     box-sizing: border-box;
+    text-shadow: 0 0 5px var(--glow-color);
 }
 
 h1, h2 {
-    color: var(--primary-blue-dark);
+    color: var(--primary-cyan);
+    text-shadow: 0 0 10px var(--primary-cyan);
 }
 
 hr {
     border: none;
-    border-top: 1px solid var(--gray-border);
+    border-top: 1px solid var(--border-color);
     margin: 2rem 0;
+    box-shadow: 0 0 10px var(--shadow-color);
 }
 
 /* --- Containers --- */
 #login-container, #wallet-container {
-    background: var(--white);
+    background: var(--light-bg);
     padding: 2.5rem;
     border-radius: 12px;
-    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 20px var(--shadow-color);
     width: 100%;
     max-width: 800px;
     text-align: center;
@@ -56,33 +61,38 @@ input[type="text"], input[type="password"], input[type="number"], input[type="fi
     width: calc(100% - 24px);
     padding: 12px;
     margin-bottom: 1rem;
-    border: 1px solid var(--gray-border);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 16px;
+    background-color: var(--dark-bg);
+    color: var(--text-light);
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus {
     outline: none;
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    border-color: var(--primary-cyan);
+    box-shadow: 0 0 10px var(--glow-color);
 }
 
 button {
     width: 100%;
     padding: 12px 20px;
-    border: none;
+    border: 1px solid var(--primary-cyan);
     border-radius: 8px;
-    background-color: var(--primary-blue);
-    color: var(--white);
+    background-color: transparent;
+    color: var(--primary-cyan);
     cursor: pointer;
     font-size: 16px;
     font-weight: 600;
-    transition: background-color 0.2s, transform 0.1s;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    text-shadow: 0 0 5px var(--primary-cyan);
 }
 
 button:hover {
-    background-color: var(--primary-blue-dark);
+    background-color: var(--primary-cyan);
+    color: var(--dark-bg);
+    box-shadow: 0 0 20px var(--primary-cyan);
 }
 
 button:active {
@@ -95,22 +105,25 @@ button:active {
     right: 20px;
     width: auto;
     background-color: transparent;
-    color: var(--primary-blue);
+    color: var(--primary-magenta);
+    border-color: var(--primary-magenta);
     font-weight: normal;
     padding: 8px 12px;
 }
 #logout-button:hover {
-    background-color: rgba(0, 123, 255, 0.1);
+    background-color: var(--primary-magenta);
+    color: var(--dark-bg);
+    box-shadow: 0 0 20px var(--primary-magenta);
 }
 
 /* --- Wallet Specifics --- */
 #wallet-container {
-    position: relative; /* For logout button positioning */
+    position: relative;
 }
 
 #wallet-username {
     font-weight: bold;
-    color: var(--primary-blue-dark);
+    color: var(--primary-magenta);
 }
 
 #wallet-info div {
@@ -120,10 +133,12 @@ button:active {
 
 #wallet-info span {
     font-family: monospace;
-    background-color: var(--gray-light);
+    background-color: var(--dark-bg);
     padding: 2px 6px;
     border-radius: 4px;
     word-break: break-all;
+    color: var(--primary-cyan);
+    border: 1px solid var(--border-color);
 }
 
 /* --- Actions (Send/Create) --- */
@@ -147,18 +162,18 @@ button:active {
 }
 
 .nft-item {
-    border: 1px solid var(--gray-border);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 1rem;
     text-align: center;
-    background-color: var(--white);
-    box-shadow: var(--shadow);
+    background-color: var(--light-bg);
+    box-shadow: 0 0 10px var(--shadow-color);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .nft-item:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 0 20px var(--glow-color);
 }
 
 .nft-item img {
@@ -166,8 +181,9 @@ button:active {
     height: 120px;
     object-fit: cover;
     border-radius: 4px;
-    background-color: var(--gray-light);
+    background-color: var(--dark-bg);
     margin-bottom: 0.75rem;
+    border: 1px solid var(--border-color);
 }
 
 .nft-item p {
@@ -175,6 +191,7 @@ button:active {
     font-size: 14px;
     font-weight: 500;
     word-break: break-all;
+    color: var(--primary-cyan);
 }
 
 .nft-item button {
@@ -182,9 +199,32 @@ button:active {
     padding: 6px 12px;
     font-size: 12px;
     width: auto;
-    background-color: var(--text-light);
+    background-color: transparent;
+    border-color: var(--primary-magenta);
+    color: var(--primary-magenta);
 }
 
 .nft-item button:hover {
-    background-color: var(--text-dark);
+    background-color: var(--primary-magenta);
+    color: var(--dark-bg);
+    box-shadow: 0 0 15px var(--primary-magenta);
+}
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+    body {
+        padding: 1rem 0.5rem;
+    }
+    #login-container, #wallet-container {
+        padding: 1.5rem;
+    }
+    h1 {
+        font-size: 1.8rem;
+    }
+    h2 {
+        font-size: 1.5rem;
+    }
+    #actions-container {
+        grid-template-columns: 1fr;
+    }
 }

@@ -68,7 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const refreshBalance = async () => {
         try {
             const balanceData = await apiFetch('/api/v1/user/wallet/balance');
-            bsvBalanceEl.textContent = balanceData.balance.toLocaleString();
+            if (balanceData && typeof balanceData.total_balance !== 'undefined') {
+                bsvBalanceEl.textContent = balanceData.total_balance.toLocaleString();
+            }
         } catch (error) {
             console.error('Failed to refresh balance:', error);
         }
@@ -96,8 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
             nftItem.className = 'nft-item';
 
             const nftImage = document.createElement('img');
-            nftImage.alt = nft.original_file_name || 'NFT Image'; // Use original file name for alt text
-            nftImage.src = '#'; // Placeholder until image loads
+            nftImage.alt = nft.original_file_name || 'NFT Image';
+            nftImage.src = '#'; // Placeholder
 
             const nftName = document.createElement('p');
             nftName.textContent = nft.original_file_name || 'Unnamed NFT';
@@ -112,17 +114,16 @@ document.addEventListener('DOMContentLoaded', () => {
             nftGrid.appendChild(nftItem);
 
             try {
-                // Fetch the image data as a base64 string in a JSON object, as per the API documentation.
-                const imageData = await apiFetch(`/api/v1/nft/data/${nft.nft_origin}?data_format=base64`);
+                const endpoint = `/api/v1/nft/data/${nft.nft_origin}?data_format=base64`;
+                const imageData = await apiFetch(endpoint);
                 
                 if (imageData && imageData.data) {
-                    // Construct the Data URL and set it as the image source.
                     nftImage.src = `data:${nft.content_type};base64,${imageData.data}`;
                 } else {
                     throw new Error('Base64 data field not found in API response.');
                 }
             } catch (error) {
-                console.error(`Failed to load image for ${nft.original_file_name} using origin ${nft.nft_origin}:`, error);
+                console.error(`Failed to load image for ${nft.original_file_name}:`, error);
                 nftImage.alt = 'Image not found';
             }
         }
@@ -136,24 +137,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 apiFetch('/api/v1/user/nfts/info')
             ]);
 
-            // Re-adding logs for debugging the NFT structure
-            console.log('Balance data:', balanceData);
-            console.log('Address data:', addressData);
-            console.log('NFTs data:', nftsData);
-
-            // Use the correct property for balance from the API response
             if (balanceData && typeof balanceData.total_balance !== 'undefined') {
                 bsvBalanceEl.textContent = balanceData.total_balance.toLocaleString();
             } else {
-                console.error('total_balance property not found in balanceData response.');
                 bsvBalanceEl.textContent = 'N/A';
             }
 
-            // Use the correct property for address from the API response
             if (addressData && typeof addressData.Address === 'string') {
                 bsvAddressEl.textContent = addressData.Address;
             } else {
-                console.error('Address property not found or not a string in addressData response.');
                 bsvAddressEl.textContent = 'N/A';
             }
 
@@ -192,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Use the dedicated JWT endpoint with JSON payload
             const response = await fetch(`${API_BASE_URL}/api/v1/auth/jwt-token`, {
                 method: 'POST',
                 headers: {
@@ -202,16 +193,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: 'An unknown error occurred' }));
-                throw new Error(errorData.detail || errorData.error || `HTTP error! ${response.status}`);
+                const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+                throw new Error(errorData.detail || `HTTP error! ${response.status}`);
             }
 
             const tokenData = await response.json();
             const token = tokenData.token || tokenData.access;
 
             if (!token) {
-                console.log('JWT response data:', tokenData); // For debugging if needed
-                throw new Error('Login successful, but no token was provided. Check the developer console.');
+                throw new Error('Login successful, but no token was provided.');
             }
 
             sessionStorage.setItem('jwtToken', token);
